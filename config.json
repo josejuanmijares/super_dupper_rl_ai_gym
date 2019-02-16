@@ -1,0 +1,130 @@
+{
+  "train_dir": {
+    "vars": [
+      "train_dir",
+      "tf_train_breakout",
+      "Directory where to write event logs and checkpoint. "
+    ],
+    "type": "string"
+  },
+  "restore_file_path": {
+    "vars": [
+      "restore_file_path",
+      "/home/boyuanf/DeepQLearning/tf_train_breakout/breakout_model_20180610205843_36h_12193ep_sec_version.h5",
+      "Path of the restore file "
+    ],
+    "type": "string"
+  },
+  "num_episode": {
+    "vars": [
+      "num_episode",
+      1000,
+      "number of epochs of the optimization loop."
+    ],
+    "type": "integer"
+  },
+  "observe_step_num": {
+    "vars": [
+      "observe_step_num",
+      5000,
+      "Timesteps to observe before training."
+    ],
+    "type": "integer"
+  },
+  "epsilon_step_num": {
+    "vars": [
+      "epsilon_step_num",
+      50000,
+      "frames over which to anneal epsilon."
+    ],
+    "type": "integer"
+  },
+  "refresh_target_model_num": {
+    "vars": [
+      "refresh_target_model_num",
+      10000,
+      "frames over which to anneal epsilon."
+    ],
+    "type": "integer"
+  },
+  "replay_memory": {
+    "vars": [
+      "replay_memory",
+      400,
+      "number of previous transitions to remember."
+    ],
+    "type": "integer"
+  },
+  "no_op_steps": {
+    "vars": [
+      "no_op_steps",
+      30,
+      "Number of the steps that runs before script begin."
+    ],
+    "type": "integer"
+  },
+  "regularizer_scale": {
+    "vars": [
+      "regularizer_scale",
+      0.01,
+      "L1 regularizer scale."
+    ],
+    "type": "flaot"
+  },
+  "batch_size": {
+    "vars": [
+      "batch_size",
+      32,
+      "Size of minibatch to train."
+    ],
+    "type": "integer"
+  },
+  "learning_rate": {
+    "vars": [
+      "learning_rate",
+      0.00025,
+      "Number of batches to run."
+    ],
+    "type": "float"
+  },
+  "init_epsilon": {
+    "vars": [
+      "init_epsilon",
+      1.0,
+      "starting value of epsilon."
+    ],
+    "type": "float"
+  },
+  "final_epsilon": {
+    "vars": [
+      "final_epsilon",
+      0.1,
+      "final value of epsilon."
+    ],
+    "type": "float"
+  },
+  "gamma": {
+    "vars": [
+      "gamma",
+      0.99,
+      "decay rate of past observations."
+    ],
+    "type": "float"
+  },
+  "resume": {
+    "vars": [
+      "resume",
+      false,
+      "Whether to resume from previous checkpoint."
+    ],
+    "type": "boolean"
+  },
+  "render": {
+    "vars": [
+      "render",
+      true,
+      "Whether to display the game."
+    ],
+    "type": "boolean"
+  }
+}
