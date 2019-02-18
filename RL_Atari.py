@@ -46,14 +46,14 @@ class RL_Atari:
             print("{} :  {},{},{} ... done".format(data['type'], *data['vars']))
         return tf.app.flags.FLAGS
 
-    def _atari_model(self):
-        def huber_loss(y, q_value):
-            error = K.abs(y - q_value)
-            quadratic_part = K.clip(error, 0.0, 1.0)
-            linear_part = error - quadratic_part
-            loss = K.mean(0.5 * K.square(quadratic_part) + linear_part)
-            return loss
+    def _huber_loss(self, y, q_value):
+        error = K.abs(y - q_value)
+        quadratic_part = K.clip(error, 0.0, 1.0)
+        linear_part = error - quadratic_part
+        loss = K.mean(0.5 * K.square(quadratic_part) + linear_part)
+        return loss
 
+    def _atari_model(self):
         # With the functional API we need to define the inputs.
         frames_input = layers.Input(self.ATARI_SHAPE, name='frames')
         actions_input = layers.Input((self.ACTION_SIZE,), name='action_mask')
@@ -83,7 +83,7 @@ class RL_Atari:
         optimizer = RMSprop(lr=self.FLAGS.learning_rate, rho=0.95, epsilon=0.01)
         # model.compile(optimizer, loss='mse')
         # to changed model weights more slowly, uses MSE for low values and MAE(Mean Absolute Error) for large values
-        model.compile(optimizer, loss=huber_loss)
+        model.compile(optimizer, loss=self._huber_loss)
         return model
 
     def _train_initialization(self, replacement_model=None):
@@ -337,3 +337,62 @@ class RL_Atari:
                     training_variables['episode_number'] += 1
 
         file_writer.close()
+
+    def _test_initialization(self, replacement_model=None):
+
+        now = datetime.utcnow().strftime("%Y%m%d%H%M%S")
+
+        test_variables = {
+            'memory': deque(maxlen=self.FLAGS.replay_memory),
+            'episode_number': 0,
+            'epsilon': 0.001,
+            'epsilon_decay': (self.FLAGS.init_epsilon - self.FLAGS.final_epsilon) / self.FLAGS.epsilon_step_num,
+            'global_step': 0,
+            'now': now,
+            'log_dir': '{}/run-{}-log'.format(self.FLAGS.train_dir, now)
+        }
+        model = load_model(self.FLAGS.restore_file_path,
+                           custom_objects={'_huber_loss': self._huber_loss})  # load model with customized loss func
+
+        return model, test_variables
+
+    def test(self, replacement_model=None):
+        self.env = gym.make('BreakoutDeterministic-v4')
+        model, test_variables = self._test_initialization()
+
+        model_target = clone_model(model)
+        model_target.set_weights(model.get_weights())
+
+        while test_variables['episode_number'] < self.FLAGS.num_episode:
+            # initialization
+            episode_variables = {}
+            self._episode_init(episode_variables)
+
+            # game on!
+            while not episode_variables['done']:
+                if self.FLAGS.render:
+                    self.env.render()
+                    time.sleep(0.01)
+
+                # STEP 1: GET ACTION FOR CURRENT STATE
+                # get action for the current history and go one step in environment
+                action = self._episode_get_action(test_variables, episode_variables, model_target)
+                self._update_epsilon(test_variables)
+
+                # STEP 2: EVALUATE STEP
+                reaction_variables = self._evaluate(action)
+                episode_variables['done'] = reaction_variables['done']
+
+                # STEP 4: UPDATE VARIABLES & STORE MEMORY
+                next_state, next_history = self._update_episode_variables(episode_variables, reaction_variables)
+                self._store_memory(test_variables, episode_variables, reaction_variables, next_history)
+                # reaction_variables['reward'] = np.clip(reaction_variables['reward'], -1., 1.)
+
+                episode_variables['score'] += reaction_variables['reward']
+                self._check_exit_condition(test_variables, episode_variables, next_history)
+
+                if episode_variables['done']:
+                    test_variables['episode_number'] += 1
+                    print('episode: {}, score: {}'.format(test_variables['episode_number'], episode_variables['score']))
+
+        pass

@@ -10,7 +10,7 @@
   "restore_file_path": {
     "vars": [
       "restore_file_path",
-      "tf_train_breakout/breakout_model_20180610205843_36h_12193ep_sec_version.h5",
+      "./tf_train_breakout/breakout_model_20190218071227.h5",
       "Path of the restore file "
     ],
     "type": "string"
