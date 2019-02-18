@@ -1,21 +1,20 @@
-import gym
+import os.path
 import random
+import time
+from collections import deque
+from datetime import datetime
+
+import gym
 import numpy as np
 import tensorflow as tf
+from keras import backend as K
 from keras import layers
+from keras.models import Model
+from keras.models import clone_model
+from keras.models import load_model
+from keras.optimizers import RMSprop
 from skimage.color import rgb2gray
 from skimage.transform import resize
-from keras.models import Model
-
-from collections import deque
-from keras.optimizers import RMSprop
-from keras import backend as K
-from datetime import datetime
-import os.path
-import time
-from keras.models import load_model
-from keras.models import clone_model
-from keras.callbacks import TensorBoard
 
 FLAGS = tf.app.flags.FLAGS
 
