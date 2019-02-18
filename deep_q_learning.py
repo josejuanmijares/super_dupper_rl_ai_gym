@@ -211,7 +211,9 @@ def train():
         # this is one of DeepMind's idea.
         # just do nothing at the start of episode to avoid sub-optimal
         for _ in range(random.randint(1, FLAGS.no_op_steps)):
-            observe, _, _, _ = env.step(1) #k = env.env.clone_state()
+            observe, _, _, _ = env.step(1)
+
+            # x0 = env.env.clone_full_state()
         # At start of episode, there is no preceding frame
         # So just copy initial states to make history
         state = pre_processing(observe)
