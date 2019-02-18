@@ -337,3 +337,6 @@ class RL_Atari:
                     training_variables['episode_number'] += 1
 
         file_writer.close()
+
+    def predict(self, replacement_model=None):
+        pass
