@@ -147,12 +147,18 @@ class RL_Atari:
                                             np.ones(self.ACTION_SIZE).reshape(1, self.ACTION_SIZE)])
             return np.argmax(q_value[0])
 
-    def _episode_evaluate_action(self, action):
-        real_action = action + 1
+    def _episode_evaluate_action(self, action, rollback=True):
         state = self.env.unwrapped.clone_full_state()
         reaction = self._evaluate(action)
+        if rollback:
+            self.env.unwrapped.restore_full_state(state)
+        return reaction, state
+
+    def _episode_get_state(self):
+        return self.env.unwrapped.clone_full_state()
+
+    def _episode_rollback_to_state(self, state):
         self.env.unwrapped.restore_full_state(state)
-        return reaction
 
     def _update_epsilon(self, training_variables):
         if training_variables['epsilon'] > self.FLAGS.final_epsilon \
