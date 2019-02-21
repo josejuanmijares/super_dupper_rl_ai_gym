@@ -8,6 +8,7 @@ from datetime import datetime
 import gym
 import numpy as np
 import tensorflow as tf
+from GA import GA
 from keras import backend as K
 from keras import layers
 from keras.models import Model
@@ -16,8 +17,6 @@ from keras.models import load_model
 from keras.optimizers import RMSprop
 from skimage.color import rgb2gray
 from skimage.transform import resize
-
-from GA import GA
 
 
 class RL_Atari(GA):
@@ -29,9 +28,6 @@ class RL_Atari(GA):
             filepath)  # 210*160*3(color) --> 84*84(mono) # float --> integer (to reduce the size of replay memory)
         self.ATARI_SHAPE = (84, 84, 4) if ATARI_SHAPE is None else ATARI_SHAPE  # input image size to model
         self.ACTION_SIZE = 3 if ACTION_SIZE is None else ACTION_SIZE
-        self.DEFAULT_GA_SETUP = {'ind_size': 1, 'indpb': 0.05, 'tournsize': 3, 'population_size': 4,
-                                 'init_individual_func': self._build_sequence_of_actions, 'init_individual_args': [20],
-                                 'evaluate_func': self._episode_evaluate_list_of_actions}
 
 
     def _fill_up_flags(self, filepath):
@@ -308,7 +304,7 @@ class RL_Atari(GA):
         list_of_actions = [random.randrange(self.ACTION_SIZE) for _ in range(n_actions)]
         return list_of_actions
 
-    def train(self, replacement_model=None, ga_setup=None):
+    def train(self, replacement_model=None):
         self.env = gym.make('BreakoutDeterministic-v4')
         model, training_variables = self._train_initialization(replacement_model)
 
@@ -317,9 +313,6 @@ class RL_Atari(GA):
         model_target = clone_model(model)
         model_target.set_weights(model.get_weights())
 
-        if ga_setup is None:
-            ga_setup = self.DEFAULT_GA_SETUP
-        ga = GA(**ga_setup)
 
         while training_variables['episode_number'] < self.FLAGS.num_episode:
 
@@ -332,11 +325,6 @@ class RL_Atari(GA):
                 if self.FLAGS.render:
                     self.env.render()
                     time.sleep(0.01)
-
-                ##### GA starts here ######
-
-                ga.run_now()
-
 
                 # STEP 1: GET ACTION FOR CURRENT STATE
                 # get action for the current history and go one step in environment
