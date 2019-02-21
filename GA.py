@@ -4,14 +4,25 @@ from deap import creator, base, tools, algorithms
 
 class GA:
 
-    def __init__(self, ind_size=2, indpb=0.05, tournsize=3, population_size=4):
+    def __init__(self, ind_size=2, indpb=0.05, tournsize=3, population_size=4, init_individual_func=None,
+                 init_individual_args=None, evaluate_func=None):
         creator.create("FitnessMax", base.Fitness, weights=(1.0,))
-        creator.create("Individual", np.ndarray, fitness=creator.FitnessMax)
+        creator.create("Individual", list, fitness=creator.FitnessMax)
         self.toolbox = base.Toolbox()
-        self.toolbox.register("attr_bool", np.random.randint, 0, 10)
-        self.toolbox.register("individual", tools.initRepeat, creator.Individual, self.toolbox.attr_bool, n=ind_size)
+        if init_individual_func is None:
+            self.toolbox.register("attr_bool", np.random.randint, 0, 10)
+            self.toolbox.register("individual", tools.initRepeat, creator.Individual, self.toolbox.attr_bool,
+                                  n=ind_size)
+        else:
+            self.toolbox.register("attr_bool", init_individual_func, *init_individual_args)
+            self.toolbox.register("individual", tools.initRepeat, creator.Individual, self.toolbox.attr_bool,
+                                  n=ind_size)
         self.toolbox.register("population", tools.initRepeat, list, self.toolbox.individual)
-        self.toolbox.register("evaluate", self.evalOneMax)
+
+        if evaluate_func is None:
+            self.toolbox.register("evaluate", self.evalOneMax)
+        else:
+            self.toolbox.register("evaluate", evaluate_func)
         self.toolbox.register("mate", self.cxTwoPointCopy)
         self.toolbox.register("mutate", tools.mutFlipBit, indpb=indpb)
         self.toolbox.register("select", tools.selTournament, tournsize=tournsize)
@@ -43,19 +54,21 @@ class GA:
             >>> print(b)
             [5 6 7 8]
         """
-        size = len(ind1)
-        print("size= {}".format(size))
-        cxpoint1 = np.random.randint(1, size)
-        cxpoint2 = np.random.randint(0, size - 1)
-        if cxpoint2 >= cxpoint1:
-            cxpoint2 += 1
-        else:  # Swap the two cx points
-            cxpoint1, cxpoint2 = cxpoint2, cxpoint1
 
-        ind1[cxpoint1:cxpoint2], ind2[cxpoint1:cxpoint2] = ind2[cxpoint1:cxpoint2].copy(), ind1[
-                                                                                           cxpoint1:cxpoint2].copy()
+        for ind1_i, ind2_i in zip(ind1, ind2):
+            size = len(ind1_i)
+            print("size= {}".format(size))
+            cxpoint1 = np.random.randint(1, size)
+            cxpoint2 = np.random.randint(0, size - 1)
+            if cxpoint2 >= cxpoint1:
+                cxpoint2 += 1
+            else:  # Swap the two cx points
+                cxpoint1, cxpoint2 = cxpoint2, cxpoint1
 
-        return ind1, ind2
+            ind1_i[cxpoint1:cxpoint2], ind2_i[cxpoint1:cxpoint2] = ind2_i[cxpoint1:cxpoint2].copy(), \
+                                                                   ind1_i[cxpoint1:cxpoint2].copy()
+
+        return ind1_i, ind2_i
 
     def run_now(self, cxpb=0.5, mutpb=0.2, ngen=40, verbose=True):
         pop, log = algorithms.eaSimple(population=self.pop, toolbox=self.toolbox, cxpb=cxpb, mutpb=mutpb, ngen=ngen,
